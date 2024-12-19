@@ -1,4 +1,6 @@
 import { storePost } from "@/lib/posts";
+import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
 export default function NewPostPage() {
   // It is called Server Action
@@ -15,6 +17,10 @@ export default function NewPostPage() {
       content: content as string,
       userId: 1,
     });
+
+    revalidatePath("/feed", "layout");
+
+    return redirect("/feed");
   }
 
   return (
