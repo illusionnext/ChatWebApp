@@ -4,7 +4,7 @@ import Link from "next/link";
 export default function Header() {
   return (
     <header id="main-header">
-      <Link href="/">
+      <Link href="/public">
         <img src={logo.src} alt="Mobile phone with posts feed on it" />
       </Link>
       <nav>

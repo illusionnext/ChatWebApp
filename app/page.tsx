@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 
-import Posts from "@/components/posts";
+import Posts from "@/components/SSG/posts";
 import { getPosts } from "@/lib/posts";
 
 async function LatestPosts() {

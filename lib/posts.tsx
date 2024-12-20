@@ -1,6 +1,11 @@
 "use server";
+// import "server-only";
 import sql from "better-sqlite3";
+import slugify from "slugify";
+import xss from "xss";
+import fs from "node:fs";
 import { Like, Post, PostInput } from "@/types/post";
+import Database from "better-sqlite3";
 
 const db = new sql("posts.db");
 
@@ -77,12 +82,40 @@ export async function getPosts(maxNumber?: number): Promise<Post[]> {
   }));
 }
 
-export async function storePost(post: PostInput) {
-  const stmt = db.prepare(`
-        INSERT INTO posts (image_url, title, content, user_id)
-        VALUES (?, ?, ?, ?)`);
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  return stmt.run(post.imageUrl, post.title, post.content, post.userId);
+// Check if the value is a File object
+function isFile(value: unknown): value is File {
+  return typeof File !== "undefined" && value instanceof File;
+}
+
+// STORE POST
+export async function storePost(
+  post: PostInput & { imageUrl: string | File },
+): Promise<Database.RunResult> {
+  const sanitizedPost: PostInput = {
+    ...post,
+    title: xss(post.title),
+    imageUrl: typeof post.imageUrl === "string" ? xss(post.imageUrl) : "",
+    content: xss(post.content),
+  };
+
+  // Check if the image is a File object
+  if (isFile(post.imageUrl)) {
+    const extension = post.imageUrl.name.split(".").pop();
+    const fileName = `${slugify(post.title, { lower: true })}.${extension}`;
+    const filePath = `public/images/${fileName}`;
+
+    const stream = fs.createWriteStream(filePath);
+    const arrayBuffer = await post.imageUrl.arrayBuffer();
+    stream.write(Buffer.from(arrayBuffer));
+    sanitizedPost.imageUrl = `/images/${fileName}`;
+  }
+
+  return db
+    .prepare(
+      `INSERT INTO posts (image_url, title, content, user_id)
+       VALUES ( @imageUrl, @title, @content, @userId)`,
+    )
+    .run(sanitizedPost);
 }
 
 export async function updatePostLikeStatus(postId: number, userId: number) {
