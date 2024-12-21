@@ -1,9 +1,8 @@
 "use server";
-// import "server-only";
+import "server-only";
 import sql from "better-sqlite3";
-import slugify from "slugify";
+// import slugify from "slugify";
 import xss from "xss";
-import fs from "node:fs";
 import { Like, Post, PostInput } from "@/types/post";
 import Database from "better-sqlite3";
 
@@ -20,20 +19,20 @@ function initDb() {
   db.exec(`
         CREATE TABLE IF NOT EXISTS posts (
                                              id INTEGER PRIMARY KEY,
-                                             image_url TEXT NOT NULL,
+                                             imageUrl TEXT NOT NULL,
                                              title TEXT NOT NULL,
                                              content TEXT NOT NULL,
                                              created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-                                             user_id INTEGER,
-                                             FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+                                             userId INTEGER,
+                                             FOREIGN KEY(userId) REFERENCES users(id) ON DELETE CASCADE
             )`);
   db.exec(`
         CREATE TABLE IF NOT EXISTS likes (
-                                             user_id INTEGER,
-                                             post_id INTEGER,
-                                             PRIMARY KEY(user_id, post_id),
-            FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
-            FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE
+                                             userId INTEGER,
+                                             postId INTEGER,
+                                             PRIMARY KEY(userId, postId),
+            FOREIGN KEY(userId) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY(postId) REFERENCES posts(id) ON DELETE CASCADE
             )`);
 
   const stmt = db.prepare("SELECT COUNT(*) AS count FROM users");
@@ -53,16 +52,16 @@ initDb();
 export async function getPosts(maxNumber?: number): Promise<Post[]> {
   const limitClause = maxNumber ? "LIMIT ?" : "";
   const stmt = db.prepare(`
-        SELECT posts.id, image_url AS imageUrl, title, content, created_at AS createdAt,
+        SELECT posts.id, imageUrl AS imageUrl, title, content, created_at AS createdAt,
                first_name AS userFirstName, last_name AS userLastName,
-               COUNT(likes.post_id) AS likes,
+               COUNT(likes.postId) AS likes,
                EXISTS(
                    SELECT * FROM likes
-                   WHERE likes.post_id = posts.id AND likes.user_id = 2
+                   WHERE likes.postId = posts.id AND likes.userId = 2
                ) AS isLiked
         FROM posts
-                 INNER JOIN users ON posts.user_id = users.id
-                 LEFT JOIN likes ON posts.id = likes.post_id
+                 INNER JOIN users ON posts.userId = users.id
+                 LEFT JOIN likes ON posts.id = likes.postId
         GROUP BY posts.id
         ORDER BY createdAt DESC
             ${limitClause}`);
@@ -82,59 +81,36 @@ export async function getPosts(maxNumber?: number): Promise<Post[]> {
   }));
 }
 
-// Check if the value is a File object
-function isFile(value: unknown): value is File {
-  return typeof File !== "undefined" && value instanceof File;
-}
-
-// STORE POST
-export async function storePost(
-  post: PostInput & { imageUrl: string | File },
-): Promise<Database.RunResult> {
-  const sanitizedPost: PostInput = {
-    ...post,
-    title: xss(post.title),
-    imageUrl: typeof post.imageUrl === "string" ? xss(post.imageUrl) : "",
-    content: xss(post.content),
-  };
-
-  // Check if the image is a File object
-  if (isFile(post.imageUrl)) {
-    const extension = post.imageUrl.name.split(".").pop();
-    const fileName = `${slugify(post.title, { lower: true })}.${extension}`;
-    const filePath = `public/images/${fileName}`;
-
-    const stream = fs.createWriteStream(filePath);
-    const arrayBuffer = await post.imageUrl.arrayBuffer();
-    stream.write(Buffer.from(arrayBuffer));
-    sanitizedPost.imageUrl = `/images/${fileName}`;
-  }
-
-  return db
-    .prepare(
-      `INSERT INTO posts (image_url, title, content, user_id)
-       VALUES ( @imageUrl, @title, @content, @userId)`,
-    )
-    .run(sanitizedPost);
+export async function storePost({
+  imageUrl,
+  title,
+  content,
+  userId,
+}: PostInput): Promise<Database.RunResult> {
+  const stmt = db.prepare(`
+INSERT INTO posts (imageUrl, title, content, userId)
+VALUES (?, ?, ?, ?)`);
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  return stmt.run(imageUrl, title, content, userId);
 }
 
 export async function updatePostLikeStatus(postId: number, userId: number) {
   const stmt = db.prepare(`
         SELECT COUNT(*) AS count
         FROM likes
-        WHERE user_id = ? AND post_id = ?`);
+        WHERE userId = ? AND postId = ?`);
   const isLiked = stmt.get(userId, postId).count === 0;
 
   if (isLiked) {
     const insertStmt = db.prepare(`
-            INSERT INTO likes (user_id, post_id)
+            INSERT INTO likes (userId, postId)
             VALUES (?, ?)`);
     await new Promise((resolve) => setTimeout(resolve, 1000));
     return insertStmt.run(userId, postId);
   } else {
     const deleteStmt = db.prepare(`
             DELETE FROM likes
-            WHERE user_id = ? AND post_id = ?`);
+            WHERE userId = ? AND postId = ?`);
     await new Promise((resolve) => setTimeout(resolve, 1000));
     return deleteStmt.run(userId, postId);
   }

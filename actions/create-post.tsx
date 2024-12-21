@@ -3,6 +3,7 @@
 import { storePost } from "@/lib/posts";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import uploadImageFile from "@/lib/cloudinary";
 
 interface PostFormState {
   message: string | null;
@@ -15,18 +16,25 @@ export default async function createPost(
 ): Promise<PostFormState> {
   const errors: Record<string, string> = {};
   const image = formData.get("image");
-  let processedImage: string | File;
+  let processedImage: string = "";
 
   if (image instanceof File) {
-    processedImage = image; // Keep the image as File if it's a valid File object
-  } else {
-    processedImage = ""; // Default to empty or a placeholder if no image is selected
+    try {
+      processedImage = await uploadImageFile(image); // Upload the image and get the URL
+    } catch (error) {
+      console.error("Error uploading image: ❌🥊", error);
+      return {
+        message:
+          "An error occurred while uploading the image. Please try again.",
+        errors: {},
+      };
+    }
   }
 
   const postData = {
     title: formData.get("title") as string,
     content: formData.get("content") as string,
-    imageUrl: typeof processedImage === "string" ? processedImage : "", // Ensure image is a string
+    imageUrl: processedImage,
     userId: 1,
   };
   console.log(postData);
