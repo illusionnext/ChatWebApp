@@ -1,9 +1,10 @@
 "use server";
 import "server-only";
+
 import sql from "better-sqlite3";
 // import slugify from "slugify";
-import xss from "xss";
-import { Like, Post, PostInput } from "@/types/post";
+// import xss from "xss";
+import { PostTypes, PostInputTypes } from "@/types/post";
 import Database from "better-sqlite3";
 
 const db = new sql("posts.db");
@@ -49,7 +50,7 @@ function initDb() {
 
 initDb();
 
-export async function getPosts(maxNumber?: number): Promise<Post[]> {
+export async function getPosts(maxNumber?: number): Promise<PostTypes[]> {
   const limitClause = maxNumber ? "LIMIT ?" : "";
   const stmt = db.prepare(`
         SELECT posts.id, imageUrl AS imageUrl, title, content, created_at AS createdAt,
@@ -86,7 +87,7 @@ export async function storePost({
   title,
   content,
   userId,
-}: PostInput): Promise<Database.RunResult> {
+}: PostInputTypes): Promise<Database.RunResult> {
   const stmt = db.prepare(`
 INSERT INTO posts (imageUrl, title, content, userId)
 VALUES (?, ?, ?, ?)`);
@@ -99,18 +100,21 @@ export async function updatePostLikeStatus(postId: number, userId: number) {
         SELECT COUNT(*) AS count
         FROM likes
         WHERE userId = ? AND postId = ?`);
+
   const isLiked = stmt.get(userId, postId).count === 0;
 
   if (isLiked) {
     const insertStmt = db.prepare(`
             INSERT INTO likes (userId, postId)
             VALUES (?, ?)`);
+
     await new Promise((resolve) => setTimeout(resolve, 1000));
     return insertStmt.run(userId, postId);
   } else {
     const deleteStmt = db.prepare(`
             DELETE FROM likes
             WHERE userId = ? AND postId = ?`);
+
     await new Promise((resolve) => setTimeout(resolve, 1000));
     return deleteStmt.run(userId, postId);
   }

@@ -1,6 +1,6 @@
 "use server";
 
-import { storePost } from "@/lib/posts";
+import { storePost, updatePostLikeStatus } from "@/lib/posts";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import uploadImageFile from "@/lib/cloudinary";
@@ -65,4 +65,10 @@ export default async function createPost(
   }
   console.dir("Redirecting to feed page... 💥🦈");
   return redirect("/feed");
+}
+
+// This function is used to toggle the like status of a post.
+export async function togglePostLikeStatus(postId: number) {
+  await updatePostLikeStatus(postId, 2); //it needs postId and userId, We are hardcoding userId to 2.Later time I will create Login and get userId from there.
+  revalidatePath("/feed", "page");
 }

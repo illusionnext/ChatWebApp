@@ -1,4 +1,4 @@
-export interface Post {
+export interface PostTypes {
   id: number;
   imageUrl: string;
   title: string;
@@ -10,14 +10,9 @@ export interface Post {
   isLiked: boolean;
 }
 
-export interface PostInput {
+export interface PostInputTypes {
   imageUrl: string;
   title: string;
   content: string;
   userId: number;
-}
-
-export interface Like {
-  userId: number;
-  postId: number;
 }
