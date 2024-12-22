@@ -1,6 +1,6 @@
 "use client";
 import { useActionState } from "react";
-import PostForm from "@/components/CSR/post-form";
+import PostForm from "@/components/SSG/post-form";
 import createPost from "@/actions/create-post";
 
 export default function NewPostPage() {

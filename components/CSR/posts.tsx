@@ -2,7 +2,7 @@
 import { useOptimistic } from "react";
 import Image from "next/image";
 import { formatDate } from "@/lib/format";
-import LikeButton from "./like-icon";
+import LikeButton from "../SSG/like-icon";
 import { PostTypes } from "@/types/post";
 import { togglePostLikeStatus } from "@/actions/create-post";
 

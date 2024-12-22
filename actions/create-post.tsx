@@ -15,7 +15,7 @@ export default async function createPost(
   formData: FormData,
 ): Promise<PostFormState> {
   const errors: Record<string, string> = {};
-  const image = formData.get("image");
+  const image = formData.get("image") as File;
   let processedImage: string = "";
 
   if (image instanceof File) {

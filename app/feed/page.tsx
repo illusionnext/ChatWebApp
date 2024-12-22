@@ -1,4 +1,4 @@
-import Posts from "@/components/SSG/posts";
+import Posts from "@/components/CSR/posts";
 import { getPosts } from "@/lib/posts";
 import { use } from "react";
 
