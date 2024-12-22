@@ -1,4 +1,5 @@
 "use server";
+import "server-only";
 
 import { storePost, updatePostLikeStatus } from "@/lib/posts";
 import { revalidatePath } from "next/cache";
