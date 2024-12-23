@@ -1,5 +1,3 @@
-import { v2 as cloudinary } from "cloudinary";
-
 if (!process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME) {
   throw new Error("NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME is not set");
 }
@@ -12,12 +10,16 @@ if (!process.env.CLOUDINARY_API_SECRET) {
   throw new Error("CLOUDINARY_API_SECRET is not set");
 }
 
-cloudinary.config({
-  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-  secure: true,
-});
+async function getBucket() {
+  const bucket = (await import("cloudinary")).v2;
+  bucket.config({
+    cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+    secure: true,
+  });
+  return bucket;
+}
 
 export default async function uploadImage(image: File): Promise<string> {
   // Convert the image to base64
@@ -27,6 +29,7 @@ export default async function uploadImage(image: File): Promise<string> {
   const base64Data = Buffer.from(imageData).toString("base64");
   const fileUri = "data:" + mime + ";" + encoding + "," + base64Data;
 
+  const cloudinary = await getBucket();
   const result = await cloudinary.uploader.upload(fileUri, {
     folder: "chat-web-app",
   });
