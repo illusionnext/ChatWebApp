@@ -8,11 +8,33 @@ import { togglePostLikeStatus } from "@/actions/create-post";
 
 type ActionType = (postId: number) => Promise<void>;
 
+function imageLoader(config: { src: string; quality?: number }) {
+  const urlStart = config.src.split("upload/")[0],
+    urlEnd = config.src.split("upload/")[1],
+    transformation = `w_300${config.quality ? `,q_${config.quality}` : 50}`; //removed h_200 to keep original aspect ratio
+
+  console.dir(config);
+  return `${urlStart}upload/${transformation}/${urlEnd}`;
+}
+
 function Post({ post, action }: { post: PostTypes; action: ActionType }) {
   return (
     <article className="post">
       <div className="post-image">
-        <Image width={100} height={100} src={post.imageUrl} alt={post.title} />
+        <Image
+          loader={imageLoader}
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          src={post.imageUrl}
+          alt={post.title}
+          placeholder="empty"
+          quality={100}
+          width={600} // Define a maximum width for the image
+          height={400} // Maintain aspect ratio or adjust as needed
+          style={{
+            maxWidth: "100%", // Ensure the image is responsive
+            height: "auto", // Adjust height to preserve the aspect ratio
+          }}
+        />
       </div>
       <div className="post-content">
         <header>

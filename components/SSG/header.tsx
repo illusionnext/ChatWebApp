@@ -6,7 +6,15 @@ export default function Header() {
   return (
     <header id="main-header">
       <Link href="/">
-        <Image src={logo} alt="Mobile phone with posts feed on it" />
+        <Image
+          width={100}
+          height={100}
+          // sizes="(max-width: 60dvw) 10dvw, (max-width: 120dvw) 20dvw, 30dvw"
+          src={logo}
+          alt="Mobile phone with posts feed on it"
+          placeholder={"empty"}
+          priority
+        />
       </Link>
       <nav>
         <ul>

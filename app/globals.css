@@ -44,6 +44,7 @@ main {
   width: 5rem;
   height: 5rem;
   filter: drop-shadow(0 0 3px #000);
+  border-radius: 0.25rem;
 }
 
 #main-header ul {
@@ -158,11 +159,22 @@ main {
   box-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
 }
 
-.post img {
+.post-image {
+  position: relative;
   width: 8rem;
   height: 6rem;
   object-fit: cover;
+  border-radius: 0.25rem;
+
+  & img {
+    width: 8rem;
+    height: 6rem;
+    object-fit: cover;
+    border-radius: 0.25rem;
+  }
 }
+
+
 
 .post-content {
   flex: 1;
@@ -200,8 +212,10 @@ main {
 .like-button:hover svg,
 .liked .like-button svg {
   fill: #e32195;
+  cursor: pointer;
 }
 
 .liked .like-button:hover svg {
   fill: transparent;
+  cursor: pointer;
 }

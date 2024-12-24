@@ -67,8 +67,7 @@ export async function getPosts(maxNumber?: number): Promise<PostTypes[]> {
     ORDER BY createdAt DESC
       ${limitClause}`);
 
-  const results = (maxNumber ? stmt.all(maxNumber) : stmt.all()) as PostTypes[]; // Type assertion here
-  return results;
+  return (maxNumber ? stmt.all(maxNumber) : stmt.all()) as PostTypes[]; // Type assertion here
 }
 
 export async function storePost({
@@ -99,14 +98,14 @@ export async function updatePostLikeStatus(postId: number, userId: number) {
       INSERT INTO likes (userId, postId)
       VALUES (?, ?)`);
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    // await new Promise((resolve) => setTimeout(resolve, 1000));
     return insertStmt.run(userId, postId);
   } else {
     const deleteStmt = db.prepare(`
       DELETE FROM likes
       WHERE userId = ? AND postId = ?`);
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    // await new Promise((resolve) => setTimeout(resolve, 1000));
     return deleteStmt.run(userId, postId);
   }
 }
