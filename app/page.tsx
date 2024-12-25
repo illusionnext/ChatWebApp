@@ -1,7 +1,13 @@
 import { Suspense } from "react";
-
 import Posts from "@/components/CSR/posts";
 import { getPosts } from "@/lib/posts";
+
+// This is for title and google Search SEO
+export const metadata = {
+  title: "Latest Posts",
+  description: "The latest posts from the community",
+  // image: "/assets/og-image.png",
+};
 
 async function LatestPosts() {
   const latestPosts = await getPosts(2);
